@@ -761,7 +761,7 @@ func (i *PDQQuery) getPatient() error {
 			var b bytes.Buffer
 			if err = tmplt.Execute(&b, i); err == nil {
 				i.Request = b.Bytes()
-				if err = i.newTukSOAPRequest(); err == nil {
+				if err = i.newTukSOAPRequest("urn:hl7-org:v3:PRPA_IN201309UV02"); err == nil {
 					pdqrsp := PIXv3Response{}
 					if err = json.Unmarshal(i.Response, &pdqrsp); err == nil {
 						if pdqrsp.Body.PRPAIN201310UV02.Acknowledgement.TypeCode.Code != "AA" {
@@ -781,7 +781,7 @@ func (i *PDQQuery) getPatient() error {
 			var b bytes.Buffer
 			if err = tmplt.Execute(&b, i); err == nil {
 				i.Request = b.Bytes()
-				if err = i.newTukSOAPRequest(); err == nil {
+				if err = i.newTukSOAPRequest("urn:hl7-org:v3:PRPA_IN201305UV02"); err == nil {
 					pdqrsp := PDQv3Response{}
 					if err = json.Unmarshal(i.Response, &pdqrsp); err == nil {
 						if pdqrsp.Body.PRPAIN201306UV02.Acknowledgement.TypeCode.Code != "AA" {
@@ -881,11 +881,12 @@ func (i *PDQQuery) newTukHttpRequest() error {
 	i.StatusCode = httpReq.StatusCode
 	return err
 }
-func (i *PDQQuery) newTukSOAPRequest() error {
+func (i *PDQQuery) newTukSOAPRequest(soapaction string) error {
 	httpReq := tukhttp.SOAPRequest{
-		URL:     i.Server_URL,
-		Body:    i.Request,
-		Timeout: i.Timeout,
+		URL:        i.Server_URL,
+		SOAPAction: soapaction,
+		Body:       i.Request,
+		Timeout:    i.Timeout,
 	}
 	err := tukhttp.NewRequest(&httpReq)
 	i.Response = httpReq.Response
