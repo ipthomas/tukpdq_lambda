@@ -43,16 +43,18 @@ func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyR
 	if usedPID == "" {
 		return handle_Response("", http.StatusBadRequest, errors.New("invalid request"))
 	}
-	if isregistered, ok := cachedpatients[usedPID]; ok {
-		log.Printf("Patient ID %s is Registered", usedPID)
-		return handle_Response(string(isregistered), http.StatusOK, nil)
-
+	if req.QueryStringParameters["cache"] == "true" {
+		if isregistered, ok := cachedpatients[usedPID]; ok {
+			log.Printf("Cached ID %s found for registered patient", usedPID)
+			return handle_Response(string(isregistered), http.StatusOK, nil)
+		}
 	}
+	log.Printf("Using %s server for PDQ request", pdq.Server)
 	if err := tukpixm.PDQ(&pdq); err != nil {
 		return handle_Response("", pdq.StatusCode, err)
 	}
 	if pdq.Count < 1 {
-		return handle_Response("", http.StatusNoContent, nil)
+		return handle_Response("No Patient Found", http.StatusNoContent, nil)
 	}
 	cachedpatients[pdq.Used_PID] = pdq.Response
 	log.Printf("Patient ID %s is Registered", pdq.Used_PID)
