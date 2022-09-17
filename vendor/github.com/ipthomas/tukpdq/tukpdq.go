@@ -142,7 +142,7 @@
 // 2022/09/12 14:02:55.852455 tukpixm.go:112: Set Reg ID REG.1MWU5C92M2 2.16.840.1.113883.2.1.3.31.2.1.1
 // 2022/09/12 14:02:55.852546 tukpixm.go:149: Added Patient 9999999468 to response
 // 2022/09/12 14:02:55.852569 main.go:84: Patient Nhs Testpatient is registered
-package tukpixm
+package tukpdq
 
 import (
 	"bytes"
