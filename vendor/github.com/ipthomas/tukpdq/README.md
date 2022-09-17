@@ -20,13 +20,12 @@ Struct PDQQuery implements the tukpixm.PDQ interface
 	Response   []byte
 	StatusCode int
 	Count      int
-	PDQ_ID     string
-	PDQ_OID    string
+	Used_ID     string
 	Patients   []PIXPatient `json:"patients"`
 }
 	Server must be set to either "pixm" to perform a IHE PIXm query or "pixv3" to perform an IHE PIXv3 query or "pdqv3" to perform an IHE PDQv3 query. The github.com/ipthomas/tukcnst provides constants for each of the valid Server values i.e. tukcnst.PIXm, tukcnst.PIXv3, tukcnst.PDQv3, or you can just use strings!
 	
-	A patient identifier is required for use in the PDQ. This can be either the MRN id along with the associated OID or the NHS ID (if no NHS OID is provided the NHS assigned OID is used) or the XDS regional ID
+	A patient identifier is required for use in the PDQ. This can be either the MRN id along with the associated OID or the NHS ID or the XDS regional ID
 
 	 The REG_OID is the Regional/XDS OID and is required
 	 
@@ -34,8 +33,7 @@ Struct PDQQuery implements the tukpixm.PDQ interface
 
 	 Timeout is the http context timeout in seconds and is optional. Default is 5 secs
 
-	 PDQ_ID will be set to the ID used for the query
-	 PDQ_OID will be set to the OID used for the query
+	 Used_ID will be set to the ID used for the query
 	 
 	 Count will equal the number of patients found matching the query
 	 Response will contain the PIXm response in []byte format

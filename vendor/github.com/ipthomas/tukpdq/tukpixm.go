@@ -160,23 +160,22 @@ import (
 )
 
 type PDQQuery struct {
-	Server     string
-	MRN_ID     string
-	MRN_OID    string
-	NHS_ID     string
-	NHS_OID    string
-	REG_ID     string
-	REG_OID    string
-	Server_URL string
-	Timeout    int64
-	Used_PID   string
-	Request    []byte
-	Response   []byte
-	StatusCode int
-	Count      int
-	PDQ_ID     string
-	PDQ_OID    string
-	Patients   []PIXPatient `json:"patients"`
+	Server       string
+	MRN_ID       string
+	MRN_OID      string
+	NHS_ID       string
+	NHS_OID      string
+	REG_ID       string
+	REG_OID      string
+	Server_URL   string
+	Timeout      int64
+	Used_PID     string
+	Used_PID_OID string
+	Request      []byte
+	Response     []byte
+	StatusCode   int
+	Count        int
+	Patients     []PIXPatient `json:"patients"`
 }
 
 type PDQv3Response struct {
@@ -733,23 +732,22 @@ func (i *PDQQuery) setPDQ_ID() error {
 		i.NHS_OID = "2.16.840.1.113883.2.1.4.1"
 	}
 	if i.MRN_ID != "" && i.MRN_OID != "" {
-		i.PDQ_ID = i.MRN_ID
-		i.PDQ_OID = i.MRN_OID
+		i.Used_PID = i.MRN_ID
+		i.Used_PID_OID = i.MRN_OID
 	} else {
 		if i.NHS_ID != "" {
-			i.PDQ_ID = i.NHS_ID
-			i.PDQ_OID = i.NHS_OID
+			i.Used_PID = i.NHS_ID
+			i.Used_PID_OID = i.NHS_OID
 		} else {
 			if i.REG_ID != "" && i.REG_OID != "" {
-				i.PDQ_ID = i.REG_ID
-				i.PDQ_OID = i.REG_OID
+				i.Used_PID = i.REG_ID
+				i.Used_PID_OID = i.REG_OID
 			}
 		}
 	}
-	if i.PDQ_ID == "" || i.PDQ_OID == "" {
+	if i.Used_PID == "" || i.Used_PID_OID == "" {
 		return errors.New("invalid request - no suitable id and oid input values found which can be used for pdq query")
 	}
-	i.Used_PID = i.PDQ_ID
 	return nil
 }
 func (i *PDQQuery) getPatient() error {
@@ -761,7 +759,7 @@ func (i *PDQQuery) getPatient() error {
 			var b bytes.Buffer
 			if err = tmplt.Execute(&b, i); err == nil {
 				i.Request = b.Bytes()
-				if err = i.newTukSOAPRequest("urn:hl7-org:v3:PRPA_IN201309UV02"); err == nil {
+				if err = i.newTukSOAPRequest(cnst.SOAP_ACTION_PIXV3_Request); err == nil {
 					pdqrsp := PIXv3Response{}
 					if err = json.Unmarshal(i.Response, &pdqrsp); err == nil {
 						if pdqrsp.Body.PRPAIN201310UV02.Acknowledgement.TypeCode.Code != "AA" {
@@ -772,16 +770,28 @@ func (i *PDQQuery) getPatient() error {
 						pat.GivenName = pdqrsp.Body.PRPAIN201310UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Given
 						pat.FamilyName = pdqrsp.Body.PRPAIN201310UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Family
 						i.Patients = append(i.Patients, pat)
+					} else {
+						log.Println(err.Error())
+						return err
 					}
+				} else {
+					log.Println(err.Error())
+					return err
 				}
+			} else {
+				log.Println(err.Error())
+				return err
 			}
+		} else {
+			log.Println(err.Error())
+			return err
 		}
 	case cnst.PDQv3:
 		if tmplt, err = template.New(cnst.PDQv3).Funcs(util.TemplateFuncMap()).Parse(PDQ_V3_Request_Template); err == nil {
 			var b bytes.Buffer
 			if err = tmplt.Execute(&b, i); err == nil {
 				i.Request = b.Bytes()
-				if err = i.newTukSOAPRequest("urn:hl7-org:v3:PRPA_IN201305UV02"); err == nil {
+				if err = i.newTukSOAPRequest(cnst.SOAP_ACTION_PDQV3_Request); err == nil {
 					pdqrsp := PDQv3Response{}
 					if err = json.Unmarshal(i.Response, &pdqrsp); err == nil {
 						if pdqrsp.Body.PRPAIN201306UV02.Acknowledgement.TypeCode.Code != "AA" {
@@ -797,9 +807,21 @@ func (i *PDQQuery) getPatient() error {
 						pat.State = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.State
 						pat.Street = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.StreetAddressLine
 						i.Patients = append(i.Patients, pat)
+					} else {
+						log.Println(err.Error())
+						return err
 					}
+				} else {
+					log.Println(err.Error())
+					return err
 				}
+			} else {
+				log.Println(err.Error())
+				return err
 			}
+		} else {
+			log.Println(err.Error())
+			return err
 		}
 	case cnst.PIXm:
 		if err := i.newTukHttpRequest(); err != nil {
@@ -871,8 +893,8 @@ func (i *PDQQuery) getPatient() error {
 func (i *PDQQuery) newTukHttpRequest() error {
 	httpReq := tukhttp.PIXmRequest{
 		URL:     i.Server_URL,
-		PID_OID: i.PDQ_OID,
-		PID:     i.PDQ_ID,
+		PID_OID: i.Used_PID_OID,
+		PID:     i.Used_PID,
 		Timeout: i.Timeout,
 	}
 	err := tukhttp.NewRequest(&httpReq)

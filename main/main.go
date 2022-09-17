@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/ipthomas/tukpixm"
+	"github.com/ipthomas/tukpdq"
 )
 
 var cachedpatients = make(map[string][]byte)
@@ -29,7 +29,7 @@ func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyR
 	if req.QueryStringParameters["nhsoid"] != "" {
 		nhsoid = "2.16.840.1.113883.2.1.4.1"
 	}
-	pdq := tukpixm.PDQQuery{
+	pdq := tukpdq.PDQQuery{
 		Server:     server,
 		MRN_ID:     req.QueryStringParameters["mrnid"],
 		MRN_OID:    req.QueryStringParameters["mrnoid"],
@@ -50,7 +50,7 @@ func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyR
 		}
 	}
 	log.Printf("Using %s server for PDQ request", pdq.Server)
-	if err := tukpixm.PDQ(&pdq); err != nil {
+	if err := tukpdq.PDQ(&pdq); err != nil {
 		return handle_Response("", pdq.StatusCode, err)
 	}
 	if pdq.Count < 1 {
@@ -83,7 +83,7 @@ func getServerURL(server string) string {
 	}
 	return os.Getenv("SERVER_PIXV3")
 }
-func getUsedPID(i tukpixm.PDQQuery) string {
+func getUsedPID(i tukpdq.PDQQuery) string {
 	if i.MRN_ID != "" && i.MRN_OID != "" {
 		return i.MRN_ID
 	} else {

@@ -7,8 +7,8 @@ github.com/ipthomas/tukcnst v1.0.10 h1:ot7Swc+dvB7zwoU42n56OmjoDq8xtvpHhQSOXtwG1
 github.com/ipthomas/tukcnst v1.0.10/go.mod h1:ciOdJbw8hryjilsWjN0vhtF3ZbSfEKUd7wfzU0IZ2X8=
 github.com/ipthomas/tukhttp v1.0.10 h1:W3lx29ctljLGLAuK4f/4aD0esIob5cN1YbrPb17miKk=
 github.com/ipthomas/tukhttp v1.0.10/go.mod h1:miRUORsOw/VmqilnGPTRb72i3zD+kEzCYaRLkOJy6X4=
-github.com/ipthomas/tukpixm v1.0.11 h1:CJ+cw14DweGSGQjT142tfnZFdQTfusJYWOe2a/UehZw=
-github.com/ipthomas/tukpixm v1.0.11/go.mod h1:vQUFUiMkqwm0RgXBMlQJ+U9xAVlzQcAy7FknpX6ux6c=
+github.com/ipthomas/tukpdq v1.1.1 h1:lwZc+tLhZhCOfKvU3sbEn+yrl2XO0H0lImNtNWdxr9g=
+github.com/ipthomas/tukpdq v1.1.1/go.mod h1:nkHnGRYYn1HrUUsw4a6X76V6j5cSoAR5p8V6NG6SQJ0=
 github.com/ipthomas/tukutil v1.0.10 h1:9wVHnyzERsTLhzz0Ob5HDoXFYzAH49ulw9iWeZSo3TA=
 github.com/ipthomas/tukutil v1.0.10/go.mod h1:O3bE0LCck8gtABMNprLwNRtfrFh7n0ewMfYioxsj6PQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
