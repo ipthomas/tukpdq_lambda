@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -19,15 +18,19 @@ func main() {
 	lambda.Start(Handle_Request)
 }
 func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-	var st = time.Now()
-	var et = st
-	var server = strings.ToLower(strings.TrimPrefix(os.Getenv("SERVER_DEFAULT"), "SERVER_"))
-	var nhsoid = os.Getenv("NHS_OID")
-	if req.QueryStringParameters["server"] != "" {
-		server = strings.ToLower(req.QueryStringParameters["server"])
+	var server = "pixv3"
+	var nhsoid = "2.16.840.1.113883.2.1.4.1"
+	if os.Getenv("NHS_OID") != "" {
+		nhsoid = os.Getenv("NHS_OID")
 	}
 	if req.QueryStringParameters["nhsoid"] != "" {
-		nhsoid = "2.16.840.1.113883.2.1.4.1"
+		nhsoid = req.QueryStringParameters["nhsoid"]
+	}
+	if os.Getenv("SERVER_DEFAULT") != "" {
+		server = strings.ToLower(strings.TrimPrefix(os.Getenv("SERVER_DEFAULT"), "SERVER_"))
+	}
+	if req.QueryStringParameters["server"] != "" {
+		server = strings.ToLower(req.QueryStringParameters["server"])
 	}
 	pdq := tukpdq.PDQQuery{
 		Server:     server,
@@ -39,14 +42,14 @@ func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyR
 		REG_OID:    os.Getenv("REG_OID"),
 		Server_URL: getServerURL(server),
 	}
-	usedPID := getUsedPID(pdq)
-	if usedPID == "" {
+	setQueryPID(&pdq)
+	if pdq.Used_PID == "" {
 		return handle_Response("", http.StatusBadRequest, errors.New("invalid request"))
 	}
 	if req.QueryStringParameters["cache"] == "true" {
-		if isregistered, ok := cachedpatients[usedPID]; ok {
-			log.Printf("Cached ID %s found for registered patient", usedPID)
-			return handle_Response(string(isregistered), http.StatusOK, nil)
+		if cachepat, ok := cachedpatients[pdq.Used_PID]; ok {
+			log.Printf("Cached ID %s found for registered patient", pdq.Used_PID)
+			return handle_Response(string(cachepat), http.StatusOK, nil)
 		}
 	}
 	log.Printf("Using %s server for PDQ request", pdq.Server)
@@ -56,10 +59,10 @@ func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyR
 	if pdq.Count < 1 {
 		return handle_Response("No Patient Found", http.StatusNoContent, nil)
 	}
-	cachedpatients[pdq.Used_PID] = pdq.Response
+	if req.QueryStringParameters["cache"] == "true" {
+		cachedpatients[pdq.Used_PID] = pdq.Response
+	}
 	log.Printf("Patient ID %s is Registered", pdq.Used_PID)
-	et = time.Now()
-	log.Printf("Response time %v ms", et.Sub(st).Milliseconds())
 	return handle_Response(string(pdq.Response), http.StatusOK, nil)
 }
 func handle_Response(body string, status int, err error) (*events.APIGatewayProxyResponse, error) {
@@ -83,17 +86,19 @@ func getServerURL(server string) string {
 	}
 	return os.Getenv("SERVER_PIXV3")
 }
-func getUsedPID(i tukpdq.PDQQuery) string {
+func setQueryPID(i *tukpdq.PDQQuery) {
 	if i.MRN_ID != "" && i.MRN_OID != "" {
-		return i.MRN_ID
+		i.Used_PID = i.MRN_ID
+		i.Used_PID_OID = i.MRN_OID
 	} else {
 		if i.NHS_ID != "" {
-			return i.NHS_ID
+			i.Used_PID = i.NHS_ID
+			i.Used_PID_OID = i.NHS_ID
 		} else {
 			if i.REG_ID != "" && i.REG_OID != "" {
-				return i.REG_ID
+				i.Used_PID = i.REG_ID
+				i.Used_PID_OID = i.REG_OID
 			}
 		}
 	}
-	return ""
 }

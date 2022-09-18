@@ -1,10 +1,10 @@
-module github.com/ipthomas/tuk_lambda_patping
+module github.com/ipthomas/tukpdq_lambda
 
 go 1.19
 
 require (
 	github.com/aws/aws-lambda-go v1.34.1
-	github.com/ipthomas/tukpdq v1.1.2
+	github.com/ipthomas/tukpdq v1.1.6
 )
 
 require (
