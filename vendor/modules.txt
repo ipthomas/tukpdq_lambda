@@ -14,21 +14,21 @@ github.com/google/uuid
 # github.com/ipthomas/tukcnst v1.2.3
 ## explicit; go 1.19
 github.com/ipthomas/tukcnst
-# github.com/ipthomas/tukdbint v1.2.1
+# github.com/ipthomas/tukdbint v1.2.3
 ## explicit; go 1.19
 github.com/ipthomas/tukdbint
-# github.com/ipthomas/tukdsub v1.2.1
+# github.com/ipthomas/tukdsub v1.2.3
 ## explicit; go 1.19
 github.com/ipthomas/tukdsub
-# github.com/ipthomas/tukhttp v1.2.0
+# github.com/ipthomas/tukhttp v1.2.1
 ## explicit; go 1.19
 github.com/ipthomas/tukhttp
-# github.com/ipthomas/tukint v1.2.7
+# github.com/ipthomas/tukint v1.2.9
 ## explicit; go 1.19
 github.com/ipthomas/tukint
-# github.com/ipthomas/tukpdq v1.2.1
+# github.com/ipthomas/tukpdq v1.2.3
 ## explicit; go 1.19
 github.com/ipthomas/tukpdq
-# github.com/ipthomas/tukutil v1.2.0
+# github.com/ipthomas/tukutil v1.2.1
 ## explicit; go 1.19
 github.com/ipthomas/tukutil
