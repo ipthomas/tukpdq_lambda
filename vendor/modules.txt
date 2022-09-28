@@ -5,30 +5,18 @@ github.com/aws/aws-lambda-go/lambda
 github.com/aws/aws-lambda-go/lambda/handlertrace
 github.com/aws/aws-lambda-go/lambda/messages
 github.com/aws/aws-lambda-go/lambdacontext
-# github.com/go-sql-driver/mysql v1.6.0
-## explicit; go 1.10
-github.com/go-sql-driver/mysql
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
-# github.com/ipthomas/tukcnst v1.2.3
+# github.com/ipthomas/tukcnst v1.2.7
 ## explicit; go 1.19
 github.com/ipthomas/tukcnst
-# github.com/ipthomas/tukdbint v1.2.3
-## explicit; go 1.19
-github.com/ipthomas/tukdbint
-# github.com/ipthomas/tukdsub v1.2.3
-## explicit; go 1.19
-github.com/ipthomas/tukdsub
-# github.com/ipthomas/tukhttp v1.2.1
+# github.com/ipthomas/tukhttp v1.2.4
 ## explicit; go 1.19
 github.com/ipthomas/tukhttp
-# github.com/ipthomas/tukint v1.2.9
-## explicit; go 1.19
-github.com/ipthomas/tukint
-# github.com/ipthomas/tukpdq v1.2.3
+# github.com/ipthomas/tukpdq v1.2.6
 ## explicit; go 1.19
 github.com/ipthomas/tukpdq
-# github.com/ipthomas/tukutil v1.2.1
+# github.com/ipthomas/tukutil v1.2.3
 ## explicit; go 1.19
 github.com/ipthomas/tukutil
