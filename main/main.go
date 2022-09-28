@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -34,6 +35,7 @@ func main() {
 // Set AWS Env Reg_OID to the regional oid
 func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
 	var err error
+	patcache, _ := strconv.ParseBool(os.Getenv(tukcnst.AWS_ENV_PATIENT_CACHE))
 	pdq := tukpdq.PDQQuery{
 		Server:     os.Getenv(tukcnst.AWS_ENV_PDQ_SERVER_TYPE),
 		MRN_ID:     req.QueryStringParameters[tukcnst.QUERY_PARAM_MRN_ID],
@@ -43,6 +45,8 @@ func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyR
 		REG_ID:     req.QueryStringParameters[tukcnst.QUERY_PARAM_REG_ID],
 		REG_OID:    os.Getenv(tukcnst.AWS_ENV_REG_OID),
 		Server_URL: os.Getenv(tukcnst.AWS_ENV_PDQ_SERVER_URL),
+		RspType:    os.Getenv(tukcnst.AWS_ENV_RESPONSE_TYPE),
+		Cache:      patcache,
 		Timeout:    5,
 	}
 	if req.QueryStringParameters[tukcnst.QUERY_PARAM_NHS_OID] != "" {
@@ -55,6 +59,14 @@ func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyR
 		pdq.Server = req.QueryStringParameters[tukcnst.QUERY_PARAM_PDQ_SERVER_TYPE]
 		pdq.Server_URL = req.QueryStringParameters["pdqserverurl"]
 	}
+	if req.QueryStringParameters[tukcnst.QUERY_PARAM_RESPONSE_TYPE] != "" {
+		pdq.RspType = req.QueryStringParameters[tukcnst.QUERY_PARAM_RESPONSE_TYPE]
+	}
+	if req.QueryStringParameters[tukcnst.QUERY_PARAM_CACHE] != "" {
+		pdqcache, _ := strconv.ParseBool(os.Getenv(tukcnst.AWS_ENV_PATIENT_CACHE))
+		pdq.Cache = pdqcache
+	}
+
 	err = tukpdq.New_Transaction(&pdq)
 	resp := events.APIGatewayProxyResponse{
 		StatusCode: pdq.StatusCode,
