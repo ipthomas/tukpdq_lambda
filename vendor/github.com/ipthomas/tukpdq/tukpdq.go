@@ -150,6 +150,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"text/template"
@@ -169,6 +170,8 @@ type PDQQuery struct {
 	REG_ID       string
 	REG_OID      string
 	Timeout      int64
+	Cache        bool
+	RspType      string
 	Used_PID     string
 	Used_PID_OID string
 	Request      []byte
@@ -704,6 +707,11 @@ type PDQInterface interface {
 	pdq() error
 }
 
+var (
+	pat_cache = make(map[string][]byte)
+	pdq_cache = make(map[string][]PIXPatient)
+)
+
 func New_Transaction(i PDQInterface) error {
 	return i.pdq()
 }
@@ -746,8 +754,26 @@ func (i *PDQQuery) setPDQ_ID() error {
 	return nil
 }
 func (i *PDQQuery) getPatient() error {
+	if i.Cache {
+		if cachepat, ok := pat_cache[i.Used_PID]; ok {
+			log.Printf("Cache entry found for Patient ID %s", i.Used_PID)
+			i.StatusCode = http.StatusOK
+			i.Patients = pdq_cache[i.Used_PID]
+			i.Count = len(i.Patients)
+			switch i.RspType {
+			case "bool":
+				i.Response = []byte("true")
+			case "code":
+				i.Response = []byte("")
+			default:
+				i.Response = cachepat
+			}
+			return nil
+		}
+	}
 	var tmplt *template.Template
 	var err error
+	i.StatusCode = http.StatusOK
 	switch i.Server {
 	case tukcnst.PDQ_SERVER_TYPE_PIXV3:
 		if tmplt, err = template.New(tukcnst.PDQ_SERVER_TYPE_PIXV3).Funcs(tukutil.TemplateFuncMap()).Parse(tukcnst.GO_Template_PIX_V3_Request); err == nil {
@@ -761,10 +787,34 @@ func (i *PDQQuery) getPatient() error {
 							return errors.New("acknowledgement code not equal aa, received " + pdqrsp.Body.PRPAIN201310UV02.Acknowledgement.TypeCode.Code)
 						}
 						i.Count, _ = strconv.Atoi(pdqrsp.Body.PRPAIN201310UV02.ControlActProcess.QueryAck.ResultTotalQuantity.Value)
-						pat := PIXPatient{}
-						pat.GivenName = pdqrsp.Body.PRPAIN201310UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Given
-						pat.FamilyName = pdqrsp.Body.PRPAIN201310UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Family
-						i.Patients = append(i.Patients, pat)
+						if i.Count > 0 {
+							pat := PIXPatient{}
+							pat.GivenName = pdqrsp.Body.PRPAIN201310UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Given
+							pat.FamilyName = pdqrsp.Body.PRPAIN201310UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Family
+							i.Patients = append(i.Patients, pat)
+							if i.Cache {
+								pat_cache[i.Used_PID] = i.Response
+								pdq_cache[i.Used_PID] = i.Patients
+							}
+							switch i.RspType {
+							case "bool":
+								i.Response = []byte("true")
+							case "code":
+								i.Response = []byte("")
+							default:
+								i.Response = []byte("No Patient Found")
+							}
+						} else {
+							switch i.RspType {
+							case "bool":
+								i.Response = []byte("false")
+							case "code":
+								i.Response = []byte("")
+								i.StatusCode = http.StatusNoContent
+							default:
+								i.Response = []byte("No Patient Found")
+							}
+						}
 					}
 				}
 			}
@@ -781,15 +831,37 @@ func (i *PDQQuery) getPatient() error {
 							return errors.New("acknowledgement code not equal aa, received " + pdqrsp.Body.PRPAIN201306UV02.Acknowledgement.TypeCode.Code)
 						}
 						i.Count, _ = strconv.Atoi(pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.QueryAck.ResultTotalQuantity.Value)
-						pat := PIXPatient{}
-						pat.GivenName = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Given
-						pat.FamilyName = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Family
-						pat.BirthDate = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.BirthTime.Value
-						pat.Zip = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.PostalCode
-						pat.City = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.City
-						pat.State = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.State
-						pat.Street = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.StreetAddressLine
-						i.Patients = append(i.Patients, pat)
+						if i.Count > 0 {
+							pat := PIXPatient{}
+							pat.GivenName = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Given
+							pat.FamilyName = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Name.Family
+							pat.BirthDate = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.BirthTime.Value
+							pat.Zip = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.PostalCode
+							pat.City = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.City
+							pat.State = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.State
+							pat.Street = pdqrsp.Body.PRPAIN201306UV02.ControlActProcess.Subject.RegistrationEvent.Subject1.Patient.PatientPerson.Addr.StreetAddressLine
+							i.Patients = append(i.Patients, pat)
+							if i.Cache {
+								pat_cache[i.Used_PID] = i.Response
+								pdq_cache[i.Used_PID] = i.Patients
+							}
+							switch i.RspType {
+							case "bool":
+								i.Response = []byte("true")
+							case "code":
+								i.Response = []byte("")
+							}
+						} else {
+							switch i.RspType {
+							case "bool":
+								i.Response = []byte("false")
+							case "code":
+								i.Response = []byte("")
+								i.StatusCode = http.StatusNoContent
+							default:
+								i.Response = []byte("No Patient Found")
+							}
+						}
 					}
 				}
 			}
@@ -850,8 +922,20 @@ func (i *PDQQuery) getPatient() error {
 							i.Patients = append(i.Patients, tukpat)
 							log.Printf("Added Patient %s to response", tukpat.NHSID)
 						}
+						if i.Cache {
+							pat_cache[i.Used_PID] = i.Response
+							pdq_cache[i.Used_PID] = i.Patients
+						}
 					} else {
-						log.Println("patient is not registered")
+						switch i.RspType {
+						case "bool":
+							i.Response = []byte("false")
+						case "code":
+							i.Response = []byte("")
+							i.StatusCode = http.StatusNoContent
+						default:
+							i.Response = []byte("No Patient Found")
+						}
 					}
 				}
 			}
