@@ -161,26 +161,156 @@ import (
 )
 
 type PDQQuery struct {
-	Server       string
-	Server_URL   string
-	NHS_ID       string
-	NHS_OID      string
-	MRN_ID       string
-	MRN_OID      string
-	REG_ID       string
-	REG_OID      string
-	Timeout      int64
-	Cache        bool
-	RspType      string
-	Used_PID     string
-	Used_PID_OID string
-	Request      []byte
-	Response     []byte
-	StatusCode   int
-	Count        int
-	Patients     []PIXPatient
+	IHE_Server_Type string
+	Server_URL      string
+	CGL_Server_URL  string
+	CGL_X_Api_Key   string
+	NHS_ID          string
+	NHS_OID         string
+	MRN_ID          string
+	MRN_OID         string
+	REG_ID          string
+	REG_OID         string
+	Timeout         int64
+	Cache           bool
+	RspType         string
+	Used_PID        string
+	Used_PID_OID    string
+	Request         []byte
+	Response        []byte
+	StatusCode      int
+	Count           int
+	Patients        []PIXPatient
+	CGL_User        CGL_User
 }
-
+type CGL_User struct {
+	Data struct {
+		Client struct {
+			BasicDetails struct {
+				Address struct {
+					AddressLine1 string `json:"addressLine1"`
+					AddressLine2 string `json:"addressLine2"`
+					AddressLine3 string `json:"addressLine3"`
+					AddressLine4 string `json:"addressLine4"`
+					AddressLine5 string `json:"addressLine5"`
+					PostCode     string `json:"postCode"`
+				} `json:"address"`
+				BirthDate                    string `json:"birthDate"`
+				Disability                   string `json:"disability"`
+				LastEngagementByCGLDate      string `json:"lastEngagementByCGLDate"`
+				LastFaceToFaceEngagementDate string `json:"lastFaceToFaceEngagementDate"`
+				LocalIdentifier              int    `json:"localIdentifier"`
+				Name                         struct {
+					Family string `json:"family"`
+					Given  string `json:"given"`
+				} `json:"name"`
+				NextCGLAppointmentDate string `json:"nextCGLAppointmentDate"`
+				NhsNumber              string `json:"nhsNumber"`
+				SexAtBirth             string `json:"sexAtBirth"`
+			} `json:"basicDetails"`
+			BbvInformation struct {
+				BbvTested        string `json:"bbvTested"`
+				HepCLastTestDate string `json:"hepCLastTestDate"`
+				HepCResult       string `json:"hepCResult"`
+				HivPositive      string `json:"hivPositive"`
+			} `json:"bbvInformation"`
+			DrugTestResults struct {
+				DrugTestDate          string `json:"drugTestDate"`
+				DrugTestSample        string `json:"drugTestSample"`
+				DrugTestStatus        string `json:"drugTestStatus"`
+				InstantOrConfirmation string `json:"instantOrConfirmation"`
+				Results               struct {
+					Amphetamine     string `json:"amphetamine"`
+					Benzodiazepine  string `json:"benzodiazepine"`
+					Buprenorphine   string `json:"buprenorphine"`
+					Cannabis        string `json:"cannabis"`
+					Cocaine         string `json:"cocaine"`
+					Eddp            string `json:"eddp"`
+					Fentanyl        string `json:"fentanyl"`
+					Ketamine        string `json:"ketamine"`
+					Methadone       string `json:"methadone"`
+					Methamphetamine string `json:"methamphetamine"`
+					Morphine        string `json:"morphine"`
+					Opiates         string `json:"opiates"`
+					SixMam          string `json:"sixMam"`
+					Tramadol        string `json:"tramadol"`
+				} `json:"results"`
+			} `json:"drugTestResults"`
+			PrescribingInformation []string `json:"prescribingInformation"`
+			RiskInformation        struct {
+				LastSelfReportedDate string `json:"lastSelfReportedDate"`
+				MentalHealthDomain   struct {
+					AttemptedSuicide                            string `json:"attemptedSuicide"`
+					CurrentOrPreviousSelfHarm                   string `json:"currentOrPreviousSelfHarm"`
+					DiagnosedMentalHealthCondition              string `json:"diagnosedMentalHealthCondition"`
+					FrequentLifeThreateningSelfHarm             string `json:"frequentLifeThreateningSelfHarm"`
+					Hallucinations                              string `json:"hallucinations"`
+					HospitalAdmissionsForMentalHealth           string `json:"hospitalAdmissionsForMentalHealth"`
+					NoIdentifiedRisk                            string `json:"noIdentifiedRisk"`
+					NotEngagingWithSupport                      string `json:"notEngagingWithSupport"`
+					NotTakingPrescribedMedicationAsInstructed   string `json:"notTakingPrescribedMedicationAsInstructed"`
+					PsychiatricOrPreviousCrisisTeamIntervention string `json:"psychiatricOrPreviousCrisisTeamIntervention"`
+					Psychosis                                   string `json:"psychosis"`
+					SelfReportedMentalHealthConcerns            string `json:"selfReportedMentalHealthConcerns"`
+					ThoughtsOfSuicideOrSelfHarm                 string `json:"thoughtsOfSuicideOrSelfHarm"`
+				} `json:"mentalHealthDomain"`
+				RiskOfHarmToSelfDomain struct {
+					AssessedAsNotHavingMentalCapacity  string `json:"assessedAsNotHavingMentalCapacity"`
+					BeliefTheyAreWorthless             string `json:"beliefTheyAreWorthless"`
+					Hoarding                           string `json:"hoarding"`
+					LearningDisability                 string `json:"learningDisability"`
+					MeetsSafeguardingAdultsThreshold   string `json:"meetsSafeguardingAdultsThreshold"`
+					NoIdentifiedRisk                   string `json:"noIdentifiedRisk"`
+					OngoingConcernsRelatingToOwnSafety string `json:"ongoingConcernsRelatingToOwnSafety"`
+					ProblemsMaintainingPersonalHygiene string `json:"problemsMaintainingPersonalHygiene"`
+					ProblemsMeetingNutritionalNeeds    string `json:"problemsMeetingNutritionalNeeds"`
+					RequiresIndependentAdvocacy        string `json:"requiresIndependentAdvocacy"`
+					SelfNeglect                        string `json:"selfNeglect"`
+				} `json:"riskOfHarmToSelfDomain"`
+				SocialDomain struct {
+					FinancialProblems         string `json:"financialProblems"`
+					HomelessRoughSleepingNFA  string `json:"homelessRoughSleepingNFA"`
+					HousingAtRisk             string `json:"housingAtRisk"`
+					NoIdentifiedRisk          string `json:"noIdentifiedRisk"`
+					SociallyIsolatedNoSupport string `json:"sociallyIsolatedNoSupport"`
+				} `json:"socialDomain"`
+				SubstanceMisuseDomain struct {
+					ConfusionOrDisorientation string `json:"ConfusionOrDisorientation"`
+					AdmissionToAandE          string `json:"admissionToAandE"`
+					BlackoutOrSeizures        string `json:"blackoutOrSeizures"`
+					ConcurrentUse             string `json:"concurrentUse"`
+					HigherRiskDrinking        string `json:"higherRiskDrinking"`
+					InjectedByOthers          string `json:"injectedByOthers"`
+					Injecting                 string `json:"injecting"`
+					InjectingInNeckOrGroin    string `json:"injectingInNeckOrGroin"`
+					NoIdentifiedRisk          string `json:"noIdentifiedRisk"`
+					PolyDrugUse               string `json:"polyDrugUse"`
+					PreviousOverDose          string `json:"previousOverDose"`
+					RecentPrisonRelease       string `json:"recentPrisonRelease"`
+					ReducedTolerance          string `json:"reducedTolerance"`
+					SharingWorks              string `json:"sharingWorks"`
+					Speedballing              string `json:"speedballing"`
+					UsingOnTop                string `json:"usingOnTop"`
+				} `json:"substanceMisuseDomain"`
+			} `json:"riskInformation"`
+			SafeguardingInformation struct {
+				LastReviewDate     string `json:"lastReviewDate"`
+				RiskHarmFromOthers string `json:"riskHarmFromOthers"`
+				RiskToAdults       string `json:"riskToAdults"`
+				RiskToChildrenOrYP string `json:"riskToChildrenOrYP"`
+				RiskToSelf         string `json:"riskToSelf"`
+			} `json:"safeguardingInformation"`
+		} `json:"client"`
+		KeyWorker struct {
+			LocalIdentifier int `json:"localIdentifier"`
+			Name            struct {
+				Family string `json:"family"`
+				Given  string `json:"given"`
+			} `json:"name"`
+			Telecom string `json:"telecom"`
+		} `json:"keyWorker"`
+	} `json:"data"`
+}
 type PDQv3Response struct {
 	XMLName xml.Name `xml:"Envelope"`
 	S       string   `xml:"S,attr"`
@@ -774,9 +904,11 @@ func (i *PDQQuery) getPatient() error {
 	var tmplt *template.Template
 	var err error
 	i.StatusCode = http.StatusOK
-	switch i.Server {
-	case tukcnst.PDQ_SERVER_TYPE_PIXV3:
-		if tmplt, err = template.New(tukcnst.PDQ_SERVER_TYPE_PIXV3).Funcs(tukutil.TemplateFuncMap()).Parse(tukcnst.GO_Template_PIX_V3_Request); err == nil {
+	switch i.IHE_Server_Type {
+	case tukcnst.PDQ_SERVER_TYPE_CGL:
+		return i.newCGLRequest()
+	case tukcnst.PDQ_SERVER_TYPE_IHE_PIXV3:
+		if tmplt, err = template.New(tukcnst.PDQ_SERVER_TYPE_IHE_PIXV3).Funcs(tukutil.TemplateFuncMap()).Parse(tukcnst.GO_Template_PIX_V3_Request); err == nil {
 			var b bytes.Buffer
 			if err = tmplt.Execute(&b, i); err == nil {
 				i.Request = b.Bytes()
@@ -819,8 +951,8 @@ func (i *PDQQuery) getPatient() error {
 				}
 			}
 		}
-	case tukcnst.PDQ_SERVER_TYPE_PDQV3:
-		if tmplt, err = template.New(tukcnst.PDQ_SERVER_TYPE_PDQV3).Funcs(tukutil.TemplateFuncMap()).Parse(tukcnst.GO_Template_PDQ_V3_Request); err == nil {
+	case tukcnst.PDQ_SERVER_TYPE_IHE_PDQV3:
+		if tmplt, err = template.New(tukcnst.PDQ_SERVER_TYPE_IHE_PDQV3).Funcs(tukutil.TemplateFuncMap()).Parse(tukcnst.GO_Template_PDQ_V3_Request); err == nil {
 			var b bytes.Buffer
 			if err = tmplt.Execute(&b, i); err == nil {
 				i.Request = b.Bytes()
@@ -866,7 +998,7 @@ func (i *PDQQuery) getPatient() error {
 				}
 			}
 		}
-	case tukcnst.PDQ_SERVER_TYPE_PIXM:
+	case tukcnst.PDQ_SERVER_TYPE_IHE_PIXM:
 		if err = i.newTukHttpRequest(); err == nil {
 			if strings.Contains(string(i.Response), "Error") {
 				err = errors.New(string(i.Response))
@@ -944,6 +1076,17 @@ func (i *PDQQuery) getPatient() error {
 	if err != nil {
 		log.Println(err.Error())
 	}
+	return err
+}
+func (i *PDQQuery) newCGLRequest() error {
+	httpReq := tukhttp.CGLRequest{
+		Request:   i.Server_URL,
+		X_Api_Key: i.CGL_X_Api_Key,
+	}
+	err := tukhttp.NewRequest(&httpReq)
+	i.Request = []byte(i.Request)
+	i.Response = httpReq.Response
+	i.StatusCode = httpReq.StatusCode
 	return err
 }
 func (i *PDQQuery) newTukHttpRequest() error {
