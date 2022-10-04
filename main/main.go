@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 
@@ -41,22 +42,19 @@ func main() {
 // A PDQ against any of the 3 IHE PDQ server types can also include the results of a query against the CGL service if the CGL_API_KEY and CGL_SERVER_URL are set
 // To perform just a query against the CGL service, set PDQ_SERVER_TYPE=cgl
 func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-	var err error
 	patcache, _ := strconv.ParseBool(os.Getenv(tukcnst.AWS_ENV_PATIENT_CACHE))
 	pdq := tukpdq.PDQQuery{
-		IHE_Server_Type: os.Getenv(tukcnst.AWS_ENV_PDQ_SERVER_TYPE),
-		CGL_Server_URL:  os.Getenv(tukcnst.AWS_ENV_CGL_SERVER_URL),
-		CGL_X_Api_Key:   os.Getenv(tukcnst.AWS_ENV_CGL_X_API_KEY),
-		MRN_ID:          req.QueryStringParameters[tukcnst.QUERY_PARAM_MRN_ID],
-		MRN_OID:         req.QueryStringParameters[tukcnst.QUERY_PARAM_MRN_OID],
-		NHS_ID:          req.QueryStringParameters[tukcnst.QUERY_PARAM_NHS_ID],
-		NHS_OID:         os.Getenv(tukcnst.AWS_ENV_REG_OID),
-		REG_ID:          req.QueryStringParameters[tukcnst.QUERY_PARAM_REG_ID],
-		REG_OID:         os.Getenv(tukcnst.AWS_ENV_REG_OID),
-		Server_URL:      os.Getenv(tukcnst.AWS_ENV_PDQ_SERVER_URL),
-		RspType:         os.Getenv(tukcnst.AWS_ENV_RESPONSE_TYPE),
-		Cache:           patcache,
-		Timeout:         5,
+		Server_Mode:   os.Getenv(tukcnst.AWS_ENV_PDQ_SERVER_TYPE),
+		CGL_X_Api_Key: os.Getenv(tukcnst.AWS_ENV_CGL_X_API_KEY),
+		MRN_ID:        req.QueryStringParameters[tukcnst.QUERY_PARAM_MRN_ID],
+		MRN_OID:       req.QueryStringParameters[tukcnst.QUERY_PARAM_MRN_OID],
+		NHS_ID:        req.QueryStringParameters[tukcnst.QUERY_PARAM_NHS_ID],
+		NHS_OID:       os.Getenv(tukcnst.AWS_ENV_NHS_OID),
+		REG_ID:        req.QueryStringParameters[tukcnst.QUERY_PARAM_REG_ID],
+		REG_OID:       os.Getenv(tukcnst.AWS_ENV_REG_OID),
+		Server_URL:    os.Getenv(tukcnst.AWS_ENV_PDQ_SERVER_URL),
+		Cache:         patcache,
+		Timeout:       5,
 	}
 	if req.QueryStringParameters[tukcnst.QUERY_PARAM_NHS_OID] != "" {
 		pdq.NHS_OID = req.QueryStringParameters[tukcnst.QUERY_PARAM_NHS_OID]
@@ -64,45 +62,62 @@ func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyR
 	if req.QueryStringParameters[tukcnst.QUERY_PARAM_REG_OID] != "" {
 		pdq.REG_OID = req.QueryStringParameters[tukcnst.QUERY_PARAM_REG_OID]
 	}
-	if req.QueryStringParameters[tukcnst.QUERY_PARAM_PDQ_SERVER_TYPE] != "" && req.QueryStringParameters["pdqserverurl"] != "" {
-		pdq.IHE_Server_Type = req.QueryStringParameters[tukcnst.QUERY_PARAM_PDQ_SERVER_TYPE]
-		pdq.Server_URL = req.QueryStringParameters["pdqserverurl"]
-	}
-	if req.QueryStringParameters[tukcnst.QUERY_PARAM_RESPONSE_TYPE] != "" {
-		pdq.RspType = req.QueryStringParameters[tukcnst.QUERY_PARAM_RESPONSE_TYPE]
+	if req.QueryStringParameters[tukcnst.QUERY_PARAM_PDQ_SERVER_TYPE] != "" {
+		log.Printf("Setting Server type to %s", req.QueryStringParameters[tukcnst.QUERY_PARAM_PDQ_SERVER_TYPE])
+		srvurl := getPDQServerURL(req.QueryStringParameters[tukcnst.QUERY_PARAM_PDQ_SERVER_TYPE])
+		if srvurl != "" {
+			pdq.Server_URL = srvurl
+			log.Printf("Set Server URL to %s", pdq.Server_URL)
+			pdq.Server_Mode = req.QueryStringParameters[tukcnst.QUERY_PARAM_PDQ_SERVER_TYPE]
+			log.Printf("Set Server type to %s", pdq.Server_Mode)
+		}
 	}
 	if req.QueryStringParameters[tukcnst.QUERY_PARAM_CACHE] != "" {
-		pdqcache, _ := strconv.ParseBool(os.Getenv(tukcnst.AWS_ENV_PATIENT_CACHE))
+		pdqcache, _ := strconv.ParseBool(req.QueryStringParameters[tukcnst.QUERY_PARAM_CACHE])
 		pdq.Cache = pdqcache
 	}
 
-	if err = tukpdq.New_Transaction(&pdq); err != nil {
-		pdq.Response = []byte(err.Error())
+	if err := tukpdq.New_Transaction(&pdq); err != nil {
+		log.Println(err.Error())
 	}
 
-	if pdq.IHE_Server_Type != tukcnst.PDQ_SERVER_TYPE_CGL && pdq.CGL_Server_URL != "" && pdq.CGL_X_Api_Key != "" {
+	if pdq.Server_Mode != tukcnst.PDQ_SERVER_TYPE_CGL && pdq.CGL_X_Api_Key != "" && req.QueryStringParameters[tukcnst.QUERY_PARAM_INCLUDE] == tukcnst.PDQ_SERVER_TYPE_CGL {
 		log.Println("Performing additional query against CGL service")
 		cglpdq := tukpdq.PDQQuery{
-			IHE_Server_Type: tukcnst.PDQ_SERVER_TYPE_CGL,
-			CGL_Server_URL:  pdq.CGL_Server_URL + pdq.NHS_ID,
-			CGL_X_Api_Key:   pdq.CGL_X_Api_Key,
-			NHS_ID:          pdq.NHS_ID,
-			REG_OID:         pdq.REG_OID,
-			Server_URL:      pdq.CGL_Server_URL + pdq.NHS_ID,
-			RspType:         pdq.RspType,
-			Cache:           patcache,
-			Timeout:         5,
+			Server_Mode:   tukcnst.PDQ_SERVER_TYPE_CGL,
+			CGL_X_Api_Key: pdq.CGL_X_Api_Key,
+			NHS_ID:        pdq.NHS_ID,
+			NHS_OID:       tukcnst.NHS_OID_DEFAULT,
+			REG_OID:       pdq.REG_OID,
+			Server_URL:    getPDQServerURL(tukcnst.PDQ_SERVER_TYPE_CGL),
 		}
-		if err = tukpdq.New_Transaction(&cglpdq); err != nil {
-			cglpdq.Response = []byte(err.Error())
-		} else {
-			json.Unmarshal(cglpdq.Response, &pdq.CGL_User)
+		err := tukpdq.New_Transaction(&cglpdq)
+		if err != nil {
+			log.Println(err.Error())
 		}
+		pdq.CGLUserResponse = cglpdq.CGLUserResponse
 	}
-	b, _ := json.MarshalIndent(pdq, "", "  ")
-	resp := events.APIGatewayProxyResponse{
-		StatusCode: pdq.StatusCode,
+	var b []byte
+	b, _ = json.MarshalIndent(pdq, "", "  ")
+	apiResp := events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
 		Body:       string(b),
 	}
-	return &resp, err
+	return &apiResp, nil
+}
+func getPDQServerURL(srv string) string {
+	log.Printf("Selecting %s Server URL", srv)
+	srvurl := ""
+	switch srv {
+	case tukcnst.PDQ_SERVER_TYPE_CGL:
+		srvurl = os.Getenv(tukcnst.AWS_ENV_CGL_SERVER_URL)
+	case tukcnst.PDQ_SERVER_TYPE_IHE_PDQV3:
+		srvurl = os.Getenv(tukcnst.AWS_ENV_IHE_PDQV3_SERVER_URL)
+	case tukcnst.PDQ_SERVER_TYPE_IHE_PIXV3:
+		srvurl = os.Getenv(tukcnst.AWS_ENV_IHE_PIXV3_SERVER_URL)
+	case tukcnst.PDQ_SERVER_TYPE_IHE_PIXM:
+		srvurl = os.Getenv(tukcnst.AWS_ENV_IHE_PIXM_SERVER_URL)
+	}
+	log.Printf("Selected %s server URL %s", srv, srvurl)
+	return srvurl
 }

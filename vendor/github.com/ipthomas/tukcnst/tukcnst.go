@@ -6,6 +6,7 @@
 package tukcnst
 
 const (
+	QUERY_PARAM_INCLUDE             = "_include"
 	QUERY_PARAM_MRN_ID              = "mrnid"
 	QUERY_PARAM_MRN_OID             = "mrnoid"
 	QUERY_PARAM_NHS_ID              = "nhsid"
@@ -27,14 +28,17 @@ const (
 	QUERY_PARAM_RESPONSE_TYPE       = "rsptype"
 	QUERY_PARAM_CACHE               = "cache"
 	QUERY_PARAM_RSP_TYPE            = "rsptype"
-	AWS_ENV_CGL_X_API_KEY           = "CGL_API_KEY"
-	AWS_ENV_CGL_SERVER_URL          = "CGL_SERVER_URL"
 	AWS_ENV_RESPONSE_TYPE           = "RSP_TYPE"
 	AWS_ENV_RESPONSE_TYPE_HTTP_CODE = "code"
 	AWS_ENV_RESPONSE_TYPE_BOOL      = "bool"
 	AWS_ENV_PATIENT_CACHE           = "PATIENT_CACHE"
 	AWS_ENV_NHS_OID                 = "NHS_OID"
 	AWS_ENV_REG_OID                 = "REG_OID"
+	AWS_ENV_IHE_PDQV3_SERVER_URL    = "IHE_PDQV3_SERVER_URL"
+	AWS_ENV_IHE_PIXV3_SERVER_URL    = "IHE_PIXV3_SERVER_URL"
+	AWS_ENV_IHE_PIXM_SERVER_URL     = "IHE_PIXM_SERVER_URL"
+	AWS_ENV_CGL_SERVER_URL          = "CGL_SERVER_URL"
+	AWS_ENV_CGL_X_API_KEY           = "CGL_API_KEY"
 	AWS_ENV_PDQ_SERVER_TYPE         = "PDQ_SERVER_TYPE"
 	AWS_ENV_PDQ_SERVER_URL          = "PDQ_SERVER_URL"
 	AWS_ENV_DSUB_BROKER_URL         = "DSUB_BROKER_URL"
