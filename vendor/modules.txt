@@ -8,15 +8,15 @@ github.com/aws/aws-lambda-go/lambdacontext
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
-# github.com/ipthomas/tukcnst v1.2.12
+# github.com/ipthomas/tukcnst v1.2.15
 ## explicit; go 1.19
 github.com/ipthomas/tukcnst
-# github.com/ipthomas/tukhttp v1.2.10
+# github.com/ipthomas/tukhttp v1.2.13
 ## explicit; go 1.19
 github.com/ipthomas/tukhttp
-# github.com/ipthomas/tukpdq v1.2.27
+# github.com/ipthomas/tukpdq v1.2.30
 ## explicit; go 1.19
 github.com/ipthomas/tukpdq
-# github.com/ipthomas/tukutil v1.2.5
+# github.com/ipthomas/tukutil v1.2.7
 ## explicit; go 1.19
 github.com/ipthomas/tukutil
