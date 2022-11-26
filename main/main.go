@@ -42,17 +42,17 @@ func main() {
 // A PDQ against any of the 3 IHE PDQ server types can also include the results of a query against the CGL service if the CGL_API_KEY and CGL_SERVER_URL are set
 // To perform just a query against the CGL service, set PDQ_SERVER_TYPE=cgl
 func Handle_Request(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-	patcache, _ := strconv.ParseBool(os.Getenv(tukcnst.AWS_ENV_PATIENT_CACHE))
+	patcache, _ := strconv.ParseBool(os.Getenv(tukcnst.ENV_PATIENT_CACHE))
 	pdq := tukpdq.PDQQuery{
-		Server_Mode:   os.Getenv(tukcnst.AWS_ENV_PDQ_SERVER_TYPE),
-		CGL_X_Api_Key: os.Getenv(tukcnst.AWS_ENV_CGL_X_API_KEY),
+		Server_Mode:   os.Getenv(tukcnst.ENV_PDQ_SERVER_TYPE),
+		CGL_X_Api_Key: os.Getenv(tukcnst.ENV_CGL_X_API_KEY),
 		MRN_ID:        req.QueryStringParameters[tukcnst.QUERY_PARAM_MRN_ID],
 		MRN_OID:       req.QueryStringParameters[tukcnst.QUERY_PARAM_MRN_OID],
 		NHS_ID:        req.QueryStringParameters[tukcnst.QUERY_PARAM_NHS_ID],
-		NHS_OID:       os.Getenv(tukcnst.AWS_ENV_NHS_OID),
+		NHS_OID:       os.Getenv(tukcnst.ENV_NHS_OID),
 		REG_ID:        req.QueryStringParameters[tukcnst.QUERY_PARAM_REG_ID],
-		REG_OID:       os.Getenv(tukcnst.AWS_ENV_REG_OID),
-		Server_URL:    os.Getenv(tukcnst.AWS_ENV_PDQ_SERVER_URL),
+		REG_OID:       os.Getenv(tukcnst.ENV_REG_OID),
+		Server_URL:    os.Getenv(tukcnst.ENV_PDQ_SERVER_URL),
 		Cache:         patcache,
 		Timeout:       5,
 	}
@@ -110,13 +110,13 @@ func getPDQServerURL(srv string) string {
 	srvurl := ""
 	switch srv {
 	case tukcnst.PDQ_SERVER_TYPE_CGL:
-		srvurl = os.Getenv(tukcnst.AWS_ENV_CGL_SERVER_URL)
+		srvurl = os.Getenv(tukcnst.ENV_CGL_SERVER_URL)
 	case tukcnst.PDQ_SERVER_TYPE_IHE_PDQV3:
-		srvurl = os.Getenv(tukcnst.AWS_ENV_IHE_PDQV3_SERVER_URL)
+		srvurl = os.Getenv(tukcnst.ENV_IHE_PDQV3_SERVER_URL)
 	case tukcnst.PDQ_SERVER_TYPE_IHE_PIXV3:
-		srvurl = os.Getenv(tukcnst.AWS_ENV_IHE_PIXV3_SERVER_URL)
+		srvurl = os.Getenv(tukcnst.ENV_IHE_PIXV3_SERVER_URL)
 	case tukcnst.PDQ_SERVER_TYPE_IHE_PIXM:
-		srvurl = os.Getenv(tukcnst.AWS_ENV_IHE_PIXM_SERVER_URL)
+		srvurl = os.Getenv(tukcnst.ENV_IHE_PIXM_SERVER_URL)
 	}
 	log.Printf("Selected %s server URL %s", srv, srvurl)
 	return srvurl
